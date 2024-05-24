@@ -13,7 +13,6 @@ export enum CourseStatus {
   NOT_STARTED = 'NOT_STARTED',
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED',
-  ARCHIVED = 'ARCHIVED',
 }
 
 export interface Lesson {

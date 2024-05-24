@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Patch, Post, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Body,
+  Delete,
+} from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { Course, Lesson, LessonStatus } from './course.model';
 import { CreateCourseDto } from './dto/create-course.dto';
@@ -51,5 +59,18 @@ export class CoursesController {
     @Param('lessonId') lessonId: string,
   ): Lesson {
     return this.coursesService.completeLesson(courseId, lessonId);
+  }
+
+  @Delete(':id')
+  deleteCourse(@Param('id') courseId: string): boolean {
+    return this.coursesService.deleteCourse(courseId);
+  }
+
+  @Delete(':courseId/lessons/:lessonId')
+  deleteLesson(
+    @Param('courseId') courseId: string,
+    @Param('lessonId') lessonId: string,
+  ): boolean {
+    return this.coursesService.deleteLesson(courseId, lessonId);
   }
 }

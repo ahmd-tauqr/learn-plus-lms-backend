@@ -64,6 +64,32 @@ export class CoursesService {
     return null;
   }
 
+  deleteCourse(courseId: string): boolean {
+    const courseIndex = this.courses.findIndex(
+      (course) => course.id === courseId,
+    );
+    if (courseIndex > -1) {
+      this.courses.splice(courseIndex, 1);
+      return true;
+    }
+    return false;
+  }
+
+  deleteLesson(courseId: string, lessonId: string): boolean {
+    const course = this.courses.find((course) => course.id === courseId);
+    if (course) {
+      const lessonIndex = course.lessons.findIndex(
+        (lesson) => lesson.id === lessonId,
+      );
+      if (lessonIndex > -1) {
+        course.lessons.splice(lessonIndex, 1);
+        this.updateCourseProgress(course);
+        return true;
+      }
+    }
+    return false;
+  }
+
   private updateCourseProgress(course: Course) {
     const completedLessons = course.lessons.filter(
       (lesson) => lesson.status === LessonStatus.COMPLETED,
