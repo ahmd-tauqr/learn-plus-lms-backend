@@ -8,7 +8,6 @@ export class CreateCourseDto {
   title: string;
 
   @IsString()
-  @IsNotEmpty()
   description: string;
 
   @IsArray()

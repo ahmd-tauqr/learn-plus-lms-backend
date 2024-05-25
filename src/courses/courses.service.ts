@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Course, CourseStatus, Lesson, LessonStatus } from './course.model';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -39,7 +39,12 @@ export class CoursesService {
   }
 
   getCourseById(courseId: string): Course {
-    return this.courses.find((course) => course.id === courseId);
+    const foundCourse = this.courses.find((course) => course.id === courseId);
+
+    if (!foundCourse) {
+      throw new NotFoundException();
+    }
+    return foundCourse;
   }
 
   addLesson(courseId: string, title: string): Lesson {
@@ -49,25 +54,29 @@ export class CoursesService {
       title,
       status: LessonStatus.NOT_STARTED,
     };
-    const course = this.courses.find((course) => course.id === courseId);
-    if (course) {
-      course.lessons.push(lesson);
-      this.updateCourseProgress(course);
+    const courseFound = this.courses.find((course) => course.id === courseId);
+    if (!courseFound) {
+      throw new NotFoundException();
     }
+    courseFound.lessons.push(lesson);
+    this.updateCourseProgress(courseFound);
     return lesson;
   }
 
   completeLesson(courseId: string, lessonId: string): Lesson {
-    const course = this.courses.find((course) => course.id === courseId);
-    if (course) {
-      const lesson = course.lessons.find((lesson) => lesson.id === lessonId);
-      if (lesson) {
-        lesson.status = LessonStatus.COMPLETED;
-        this.updateCourseProgress(course);
-        return lesson;
-      }
+    const courseFound = this.courses.find((course) => course.id === courseId);
+    if (!courseFound) {
+      throw new NotFoundException();
     }
-    return null;
+    const lessonFound = courseFound.lessons.find(
+      (lesson) => lesson.id === lessonId,
+    );
+    if (!lessonFound) {
+      throw new NotFoundException();
+    }
+    lessonFound.status = LessonStatus.COMPLETED;
+    this.updateCourseProgress(courseFound);
+    return lessonFound;
   }
 
   deleteCourse(courseId: string): boolean {
