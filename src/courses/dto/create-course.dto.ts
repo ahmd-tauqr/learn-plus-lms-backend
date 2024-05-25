@@ -15,4 +15,8 @@ export class CreateCourseDto {
   @ValidateNested({ each: true })
   @Type(() => CreateLessonDto)
   lessons: CreateLessonDto[];
+
+  @IsArray()
+  @IsString({ each: true })
+  tags: string[];
 }

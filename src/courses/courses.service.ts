@@ -10,7 +10,12 @@ export class CoursesService {
     return this.courses;
   }
 
-  createCourse(title: string, description: string, lessons: Lesson[]): Course {
+  createCourse(
+    title: string,
+    description: string,
+    lessons: Lesson[],
+    tags: string[],
+  ): Course {
     const courseId = uuidv4();
     const course: Course = {
       id: courseId,
@@ -24,6 +29,7 @@ export class CoursesService {
         status: LessonStatus.NOT_STARTED,
       })),
       progress: 0,
+      tags,
     };
 
     this.courses.push(course);

@@ -24,7 +24,7 @@ export class CoursesController {
 
   @Post()
   createCourse(@Body() createCourseDto: CreateCourseDto): Course {
-    const { title, description, lessons } = createCourseDto;
+    const { title, description, lessons, tags } = createCourseDto;
     const courseId = uuidv4();
     const transformedLessons: Lesson[] = lessons.map((lesson) => ({
       ...lesson,
@@ -36,6 +36,7 @@ export class CoursesController {
       title,
       description,
       transformedLessons,
+      tags,
     );
   }
 
