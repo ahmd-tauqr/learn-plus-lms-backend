@@ -6,6 +6,7 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { CourseStatus, LessonStatus } from './course.enum';
+import { User } from 'src/auth/user.entity';
 
 @Entity()
 export class Course {
@@ -36,6 +37,9 @@ export class Course {
 
   @Column('simple-array')
   tags: string[];
+
+  @OneToMany(() => Enrollment, (enrollment) => enrollment.course)
+  enrollments: Enrollment[];
 }
 
 @Entity()
@@ -55,4 +59,21 @@ export class Lesson {
 
   @ManyToOne(() => Course, (course) => course.lessons)
   course: Course;
+}
+
+@Entity()
+export class Enrollment {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @ManyToOne(() => User, (user) => user.enrollments, { onDelete: 'CASCADE' })
+  user: User;
+
+  @ManyToOne(() => Course, (course) => course.enrollments, {
+    onDelete: 'CASCADE',
+  })
+  course: Course;
+
+  @Column({ type: 'float', default: 0 })
+  progress: number;
 }
