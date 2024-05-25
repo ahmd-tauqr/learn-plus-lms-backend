@@ -1,111 +1,149 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Course, CourseStatus, Lesson, LessonStatus } from './course.model';
-import { v4 as uuidv4 } from 'uuid';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Course, Lesson } from './course.entity';
+import { CreateCourseDto } from './dto/create-course.dto';
+import { CourseStatus, LessonStatus } from './course.enum';
+import { CreateLessonDto } from './dto/create-lesson.dto';
 
 @Injectable()
 export class CoursesService {
-  private courses: Course[] = [];
+  constructor(
+    @InjectRepository(Course)
+    private coursesRepository: Repository<Course>,
+    @InjectRepository(Lesson)
+    private lessonsRepository: Repository<Lesson>,
+  ) {}
 
-  getAllCourses(): Course[] {
-    return this.courses;
+  async getAllCourses(): Promise<Course[]> {
+    return await this.coursesRepository.find({ relations: ['lessons'] });
   }
 
-  createCourse(
-    title: string,
-    description: string,
-    lessons: Lesson[],
-    tags: string[],
-  ): Course {
-    const courseId = uuidv4();
-    const course: Course = {
-      id: courseId,
-      title,
-      description,
-      status: CourseStatus.OPEN,
-      lessons: lessons.map((lesson) => ({
-        ...lesson,
-        id: uuidv4(),
-        courseId,
-        status: LessonStatus.NOT_STARTED,
-      })),
-      progress: 0,
-      tags,
-    };
+  async getCourseById(id: string): Promise<Course> {
+    const course = await this.coursesRepository.findOne({
+      where: { id },
+      relations: ['lessons'],
+    });
 
-    this.courses.push(course);
-    this.updateCourseProgress(course);
+    if (!course) {
+      throw new NotFoundException(`Course with ID "${id}" not found`);
+    }
 
     return course;
   }
 
-  getCourseById(courseId: string): Course {
-    const foundCourse = this.courses.find((course) => course.id === courseId);
+  async createCourse(createCourseDto: CreateCourseDto): Promise<Course> {
+    const { title, description, lessons, tags } = createCourseDto;
 
-    if (!foundCourse) {
-      throw new NotFoundException();
+    const course = this.coursesRepository.create({
+      title,
+      description,
+      status: CourseStatus.OPEN,
+      lessons: [],
+      progress: 0,
+      tags,
+    });
+
+    await this.coursesRepository.save(course);
+
+    for (const lessonDto of lessons) {
+      const lesson = this.lessonsRepository.create({
+        ...lessonDto,
+        course,
+        status: LessonStatus.NOT_STARTED,
+      });
+      await this.lessonsRepository.save(lesson);
+      course.lessons.push(lesson);
     }
-    return foundCourse;
+
+    await this.coursesRepository.save(course);
+
+    return course;
   }
 
-  addLesson(courseId: string, title: string): Lesson {
-    const lesson: Lesson = {
-      id: uuidv4(),
-      courseId,
-      title,
+  async addLesson(
+    id: string,
+    createLessonDto: CreateLessonDto,
+  ): Promise<Lesson> {
+    const course = await this.getCourseById(id);
+
+    const lesson = this.lessonsRepository.create({
+      ...createLessonDto,
+      course,
       status: LessonStatus.NOT_STARTED,
-    };
-    const courseFound = this.courses.find((course) => course.id === courseId);
-    if (!courseFound) {
-      throw new NotFoundException();
-    }
-    courseFound.lessons.push(lesson);
-    this.updateCourseProgress(courseFound);
+    });
+
+    await this.lessonsRepository.save(lesson);
+    course.lessons.push(lesson);
+    await this.coursesRepository.save(course);
+
     return lesson;
   }
 
-  completeLesson(courseId: string, lessonId: string): Lesson {
-    const courseFound = this.courses.find((course) => course.id === courseId);
-    if (!courseFound) {
-      throw new NotFoundException();
+  async completeLesson(courseId: string, lessonId: string): Promise<Lesson> {
+    const lesson = await this.lessonsRepository.findOne({
+      where: { id: lessonId, course: { id: courseId } },
+      relations: ['course'],
+    });
+
+    if (!lesson) {
+      throw new NotFoundException(
+        `Lesson with ID "${lessonId}" not found in course with ID "${courseId}"`,
+      );
     }
-    const lessonFound = courseFound.lessons.find(
+
+    lesson.status = LessonStatus.COMPLETED;
+    await this.lessonsRepository.save(lesson);
+
+    const course = await this.getCourseById(courseId);
+    this.updateCourseProgress(course);
+    await this.coursesRepository.save(course);
+
+    return lesson;
+  }
+
+  async deleteCourse(id: string): Promise<void> {
+    const course = await this.coursesRepository.findOne({
+      where: { id },
+      relations: ['lessons'],
+    });
+
+    if (!course) {
+      throw new NotFoundException(`Course with ID "${id}" not found`);
+    }
+
+    // Delete all associated lessons
+    await this.lessonsRepository.remove(course.lessons);
+
+    // Delete the course
+    await this.coursesRepository.remove(course);
+  }
+
+  async deleteLesson(courseId: string, lessonId: string): Promise<void> {
+    const course = await this.getCourseById(courseId);
+
+    const lessonIndex = course.lessons.findIndex(
       (lesson) => lesson.id === lessonId,
     );
-    if (!lessonFound) {
-      throw new NotFoundException();
+    if (lessonIndex === -1) {
+      throw new NotFoundException(`Lesson with ID "${lessonId}" not found`);
     }
-    lessonFound.status = LessonStatus.COMPLETED;
-    this.updateCourseProgress(courseFound);
-    return lessonFound;
-  }
 
-  deleteCourse(courseId: string): boolean {
-    const courseIndex = this.courses.findIndex(
-      (course) => course.id === courseId,
-    );
-    if (courseIndex > -1) {
-      this.courses.splice(courseIndex, 1);
-      return true;
-    }
-    return false;
-  }
+    const lesson = course.lessons[lessonIndex];
+    await this.lessonsRepository.remove(lesson);
 
-  deleteLesson(courseId: string, lessonId: string): boolean {
-    const course = this.courses.find((course) => course.id === courseId);
-    if (course) {
-      const lessonIndex = course.lessons.findIndex(
-        (lesson) => lesson.id === lessonId,
-      );
-      if (lessonIndex > -1) {
-        course.lessons.splice(lessonIndex, 1);
-        this.updateCourseProgress(course);
-        return true;
-      }
-    }
-    return false;
+    course.lessons.splice(lessonIndex, 1);
+    this.updateCourseProgress(course);
+    await this.coursesRepository.save(course);
   }
 
   private updateCourseProgress(course: Course) {
+    if (!course.lessons) {
+      course.progress = 0;
+      course.status = CourseStatus.NOT_STARTED;
+      return;
+    }
+
     const completedLessons = course.lessons.filter(
       (lesson) => lesson.status === LessonStatus.COMPLETED,
     ).length;
@@ -117,7 +155,7 @@ export class CoursesService {
     } else if (completedLessons > 0) {
       course.status = CourseStatus.IN_PROGRESS;
     } else {
-      course.status = CourseStatus.OPEN;
+      course.status = CourseStatus.NOT_STARTED;
     }
   }
 }

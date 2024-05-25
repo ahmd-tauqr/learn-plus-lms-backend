@@ -8,70 +8,57 @@ import {
   Delete,
 } from '@nestjs/common';
 import { CoursesService } from './courses.service';
-import { Course, Lesson, LessonStatus } from './course.model';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { CreateLessonDto } from './dto/create-lesson.dto';
-import { v4 as uuidv4 } from 'uuid';
+import { Course, Lesson } from './course.entity';
 
 @Controller('courses')
 export class CoursesController {
-  constructor(private coursesService: CoursesService) {}
+  constructor(private readonly coursesService: CoursesService) {}
 
   @Get()
-  getAllCourses(): Course[] {
-    return this.coursesService.getAllCourses();
-  }
-
-  @Post()
-  createCourse(@Body() createCourseDto: CreateCourseDto): Course {
-    const { title, description, lessons, tags } = createCourseDto;
-    const courseId = uuidv4();
-    const transformedLessons: Lesson[] = lessons.map((lesson) => ({
-      ...lesson,
-      id: uuidv4(),
-      courseId,
-      status: LessonStatus.NOT_STARTED,
-    }));
-    return this.coursesService.createCourse(
-      title,
-      description,
-      transformedLessons,
-      tags,
-    );
+  async getAllCourses(): Promise<Course[]> {
+    return await this.coursesService.getAllCourses();
   }
 
   @Get(':id')
-  getCourseById(@Param('id') courseId: string): Course {
-    return this.coursesService.getCourseById(courseId);
+  async getCourseById(@Param('id') id: string): Promise<Course> {
+    return await this.coursesService.getCourseById(id);
   }
 
-  @Post(':courseId/lessons')
-  addLesson(
-    @Param('courseId') courseId: string,
+  @Post()
+  async createCourse(
+    @Body() createCourseDto: CreateCourseDto,
+  ): Promise<Course> {
+    return await this.coursesService.createCourse(createCourseDto);
+  }
+
+  @Post(':id/lessons')
+  async addLesson(
+    @Param('id') id: string,
     @Body() createLessonDto: CreateLessonDto,
-  ): Lesson {
-    const { title } = createLessonDto;
-    return this.coursesService.addLesson(courseId, title);
+  ): Promise<Lesson> {
+    return await this.coursesService.addLesson(id, createLessonDto);
   }
 
-  @Patch(':courseId/lessons/:lessonId/complete')
-  completeLesson(
-    @Param('courseId') courseId: string,
+  @Patch(':id/lessons/:lessonId/complete')
+  async completeLesson(
+    @Param('id') id: string,
     @Param('lessonId') lessonId: string,
-  ): Lesson {
-    return this.coursesService.completeLesson(courseId, lessonId);
+  ): Promise<Lesson> {
+    return await this.coursesService.completeLesson(id, lessonId);
   }
 
   @Delete(':id')
-  deleteCourse(@Param('id') courseId: string): boolean {
-    return this.coursesService.deleteCourse(courseId);
+  async deleteCourse(@Param('id') id: string): Promise<void> {
+    await this.coursesService.deleteCourse(id);
   }
 
-  @Delete(':courseId/lessons/:lessonId')
-  deleteLesson(
-    @Param('courseId') courseId: string,
+  @Delete(':id/lessons/:lessonId')
+  async deleteLesson(
+    @Param('id') id: string,
     @Param('lessonId') lessonId: string,
-  ): boolean {
-    return this.coursesService.deleteLesson(courseId, lessonId);
+  ): Promise<void> {
+    await this.coursesService.deleteLesson(id, lessonId);
   }
 }

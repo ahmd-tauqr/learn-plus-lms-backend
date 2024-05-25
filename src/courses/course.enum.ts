@@ -1,13 +1,3 @@
-export interface Course {
-  id: string;
-  title: string;
-  description: string;
-  status: CourseStatus;
-  lessons: Lesson[];
-  progress: number;
-  tags: string[];
-}
-
 export enum CourseStatus {
   OPEN = 'OPEN',
   ENROLLED = 'ENROLLED',
@@ -15,13 +5,6 @@ export enum CourseStatus {
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED',
   ARCHIVED = 'ARCHIVED',
-}
-
-export interface Lesson {
-  id: string;
-  courseId: string;
-  title: string;
-  status: LessonStatus;
 }
 
 export enum LessonStatus {
