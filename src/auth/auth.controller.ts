@@ -3,34 +3,30 @@ import {
   Get,
   Post,
   Delete,
+  Patch,
   Body,
-  ValidationPipe,
   Param,
   UseGuards,
-  Patch,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
-
 import { User } from './user.entity';
-import { GetUser } from './get-user.decorater';
 import { Enrollment } from 'src/courses/course.entity';
+import { GetUser } from './get-user.decorater';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('/signup')
-  async signUp(
-    @Body(ValidationPipe) authCredentialsDto: AuthCredentialsDto,
-  ): Promise<void> {
+  async signUp(@Body() authCredentialsDto: AuthCredentialsDto): Promise<void> {
     return this.authService.createUser(authCredentialsDto);
   }
 
   @Post('/signin')
   async signIn(
-    @Body(ValidationPipe) authCredentialsDto: AuthCredentialsDto,
+    @Body() authCredentialsDto: AuthCredentialsDto,
   ): Promise<{ accessToken: string }> {
     const accessToken = await this.authService.validateUser(authCredentialsDto);
     return { accessToken };
@@ -54,6 +50,20 @@ export class AuthController {
     await this.authService.unenrollFromCourse(user.username, courseId);
   }
 
+  @Get('/enrollments')
+  @UseGuards(JwtAuthGuard)
+  async getEnrollments(@GetUser() user: User): Promise<Enrollment[]> {
+    return this.authService.getEnrollments(user.username);
+  }
+
+  @Get('/enrollments/:enrollmentId')
+  @UseGuards(JwtAuthGuard)
+  async getEnrollmentDetails(
+    @Param('enrollmentId') enrollmentId: string,
+  ): Promise<Enrollment> {
+    return this.authService.getEnrollmentDetails(enrollmentId);
+  }
+
   @Patch('/enrollments/:enrollmentId/progress')
   @UseGuards(JwtAuthGuard)
   async updateEnrollmentProgress(
@@ -70,11 +80,5 @@ export class AuthController {
     @Param('lessonId') lessonId: string,
   ): Promise<void> {
     await this.authService.completeLesson(enrollmentId, lessonId);
-  }
-
-  @Get('/courses')
-  @UseGuards(JwtAuthGuard)
-  async getEnrolledCourses(@GetUser() user: User): Promise<Enrollment[]> {
-    return this.authService.getEnrolledCourses(user.username);
   }
 }

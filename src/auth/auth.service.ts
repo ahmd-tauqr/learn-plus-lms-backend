@@ -12,7 +12,7 @@ import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { Course, Enrollment, Lesson } from 'src/courses/course.entity';
-import { LessonStatus } from 'src/courses/course.enum';
+import { CourseStatus, LessonStatus } from 'src/courses/course.enum';
 
 @Injectable()
 export class AuthService {
@@ -43,6 +43,7 @@ export class AuthService {
     try {
       await this.userRepository.save(user);
     } catch (error) {
+      console.log(error.code);
       if (error.code === '23505') {
         // postgres code for duplicate user
         throw new ConflictException('Username already exists');
@@ -75,9 +76,7 @@ export class AuthService {
       throw new NotFoundException(`User with username "${username}" not found`);
     }
 
-    const course = await this.courseRepository.findOne({
-      where: { id },
-    });
+    const course = await this.courseRepository.findOne({ where: { id } });
 
     if (!course) {
       throw new NotFoundException(`Course with ID "${id}" not found`);
@@ -113,9 +112,7 @@ export class AuthService {
       throw new NotFoundException(`User with username "${username}" not found`);
     }
 
-    const course = await this.courseRepository.findOne({
-      where: { id },
-    });
+    const course = await this.courseRepository.findOne({ where: { id } });
 
     if (!course) {
       throw new NotFoundException(`Course with ID "${id}" not found`);
@@ -135,7 +132,7 @@ export class AuthService {
     await this.courseRepository.save(course);
   }
 
-  async getEnrolledCourses(username: string): Promise<Enrollment[]> {
+  async getEnrollments(username: string): Promise<Enrollment[]> {
     const user = await this.userRepository.findOne({
       where: { username },
       relations: ['enrollments', 'enrollments.course'],
@@ -146,6 +143,19 @@ export class AuthService {
     }
 
     return user.enrollments;
+  }
+
+  async getEnrollmentDetails(id: string): Promise<Enrollment> {
+    const enrollment = await this.enrollmentRepository.findOne({
+      where: { id: id },
+      relations: ['course', 'course.lessons'],
+    });
+
+    if (!enrollment) {
+      throw new NotFoundException(`Enrollment with ID "${id}" not found`);
+    }
+
+    return enrollment;
   }
 
   async updateEnrollmentProgress(id: string, progress: number): Promise<void> {
@@ -192,6 +202,11 @@ export class AuthService {
     });
 
     enrollment.progress = (completedLessons / totalLessons) * 100;
+
+    if (enrollment.progress === 100) {
+      enrollment.course.status = CourseStatus.COMPLETED;
+    }
+
     await this.enrollmentRepository.save(enrollment);
   }
 }
