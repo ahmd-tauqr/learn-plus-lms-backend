@@ -7,7 +7,6 @@ import {
   Body,
   Param,
   UseGuards,
-  Logger,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
@@ -15,15 +14,14 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { User } from './user.entity';
 import { Enrollment } from 'src/courses/course.entity';
 import { GetUser } from './get-user.decorater';
+import { UpdateEnrollmentProgressDto } from 'src/courses/dto/update-enrollment-progress.dto';
 
 @Controller('auth')
 export class AuthController {
-  private logger = new Logger('CoursesController');
   constructor(private authService: AuthService) {}
 
   @Post('/signup')
   async signUp(@Body() authCredentialsDto: AuthCredentialsDto): Promise<void> {
-    this.logger.verbose(`User "${authCredentialsDto.username}" signed up`);
     return this.authService.createUser(authCredentialsDto);
   }
 
@@ -31,7 +29,6 @@ export class AuthController {
   async signIn(
     @Body() authCredentialsDto: AuthCredentialsDto,
   ): Promise<{ accessToken: string }> {
-    this.logger.verbose(`User "${authCredentialsDto.username}" signed in`);
     const accessToken = await this.authService.validateUser(authCredentialsDto);
     return { accessToken };
   }
@@ -42,28 +39,21 @@ export class AuthController {
     @Param('courseId') courseId: string,
     @GetUser() user: User,
   ): Promise<void> {
-    this.logger.verbose(
-      `User "${user.username}" enrolled to course Id "${courseId}"`,
-    );
     await this.authService.enrollToCourse(user.username, courseId);
   }
 
-  @Delete('/unenroll/:courseId')
+  @Delete('/unenroll/:enrollmentId')
   @UseGuards(JwtAuthGuard)
   async unenrollFromCourse(
-    @Param('courseId') courseId: string,
+    @Param('enrollmentId') enrollmentId: string,
     @GetUser() user: User,
   ): Promise<void> {
-    this.logger.verbose(
-      `User "${user.username}" unenrolled from course Id "${courseId}"`,
-    );
-    await this.authService.unenrollFromCourse(user.username, courseId);
+    await this.authService.unenrollFromCourse(user.username, enrollmentId);
   }
 
   @Get('/enrollments')
   @UseGuards(JwtAuthGuard)
   async getEnrollments(@GetUser() user: User): Promise<Enrollment[]> {
-    this.logger.verbose(`User "${user.username}" retrieving enrollments`);
     return this.authService.getEnrollments(user.username);
   }
 
@@ -73,9 +63,6 @@ export class AuthController {
     @Param('enrollmentId') enrollmentId: string,
     @GetUser() user: User,
   ): Promise<Enrollment> {
-    this.logger.verbose(
-      `User "${user.username}" retrieving enrollment details for Id "${enrollmentId}"`,
-    );
     return this.authService.getEnrollmentDetails(user.username, enrollmentId);
   }
 
@@ -83,16 +70,13 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async updateEnrollmentProgress(
     @Param('enrollmentId') enrollmentId: string,
-    @Body('progress') progress: number,
+    @Body() updateEnrollmentProgressDto: UpdateEnrollmentProgressDto,
     @GetUser() user: User,
   ): Promise<void> {
-    this.logger.verbose(
-      `User "${user.username}" updating progress for enrollment Id "${enrollmentId}" to "${progress}"`,
-    );
     await this.authService.updateEnrollmentProgress(
       user.username,
       enrollmentId,
-      progress,
+      updateEnrollmentProgressDto.progress,
     );
   }
 
@@ -103,9 +87,6 @@ export class AuthController {
     @Param('lessonId') lessonId: string,
     @GetUser() user: User,
   ): Promise<void> {
-    this.logger.verbose(
-      `User "${user.username}" completing lesson Id "${lessonId}" for enrollment Id "${enrollmentId}"`,
-    );
     await this.authService.completeLesson(
       user.username,
       enrollmentId,

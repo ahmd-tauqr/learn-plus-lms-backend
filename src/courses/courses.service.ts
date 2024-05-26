@@ -1,21 +1,27 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Course, Lesson } from './course.entity';
+import { Course, Enrollment, Lesson, LessonProgress } from './course.entity';
 import { CreateCourseDto } from './dto/create-course.dto';
-import { CourseStatus, LessonStatus } from './course.enum';
+import { LessonStatus } from './course.enum';
 import { CreateLessonDto } from './dto/create-lesson.dto';
 
 @Injectable()
 export class CoursesService {
+  private logger = new Logger('Courses');
   constructor(
     @InjectRepository(Course)
     private coursesRepository: Repository<Course>,
+    @InjectRepository(Enrollment)
+    private enrollmentsRepository: Repository<Enrollment>,
     @InjectRepository(Lesson)
     private lessonsRepository: Repository<Lesson>,
+    @InjectRepository(LessonProgress)
+    private lessonProgressRepository: Repository<LessonProgress>,
   ) {}
 
   async getAllCourses(): Promise<Course[]> {
+    this.logger.verbose(`Retrieving all courses`);
     return await this.coursesRepository.find({ relations: ['lessons'] });
   }
 
@@ -26,8 +32,11 @@ export class CoursesService {
     });
 
     if (!course) {
+      this.logger.error(`Course with ID "${id}" not found`);
       throw new NotFoundException(`Course with ID "${id}" not found`);
     }
+
+    this.logger.verbose(`Course details retrieved for "${course.title}"`);
 
     return course;
   }
@@ -38,7 +47,6 @@ export class CoursesService {
     const course = this.coursesRepository.create({
       title,
       description,
-      status: CourseStatus.OPEN,
       lessons: [],
       tags,
     });
@@ -56,6 +64,8 @@ export class CoursesService {
     }
 
     await this.coursesRepository.save(course);
+
+    this.logger.verbose(`Course "${course.title}" is created`);
 
     return course;
   }
@@ -76,6 +86,27 @@ export class CoursesService {
     course.lessons.push(lesson);
     await this.coursesRepository.save(course);
 
+    const enrollments = await this.enrollmentsRepository.find({
+      where: { course: { id } },
+      relations: ['lessonProgress'],
+    });
+
+    for (const enrollment of enrollments) {
+      const lessonProgress = this.lessonProgressRepository.create({
+        enrollment,
+        id: lesson.id,
+        title: lesson.title,
+        status: LessonStatus.NOT_STARTED,
+      });
+      await this.lessonProgressRepository.save(lessonProgress);
+      enrollment.lessonProgress.push(lessonProgress);
+      await this.enrollmentsRepository.save(enrollment);
+    }
+
+    this.logger.verbose(
+      `Lesson "${createLessonDto.title}" added to course "${course.title}" and all enrollments updated`,
+    );
+
     return lesson;
   }
 
@@ -86,11 +117,12 @@ export class CoursesService {
     });
 
     if (!course) {
+      this.logger.error(`Course with ID "${id}" not found`);
       throw new NotFoundException(`Course with ID "${id}" not found`);
     }
 
-    // Delete the course along with its lessons and enrollments
     await this.coursesRepository.remove(course);
+    this.logger.verbose(`Course "${course.title}" is deleted`);
   }
 
   async deleteLesson(id: string, lessonId: string): Promise<void> {
@@ -100,6 +132,7 @@ export class CoursesService {
       (lesson) => lesson.id === lessonId,
     );
     if (lessonIndex === -1) {
+      this.logger.error(`Lesson with ID "${lessonId}" not found`);
       throw new NotFoundException(`Lesson with ID "${lessonId}" not found`);
     }
 
@@ -108,5 +141,8 @@ export class CoursesService {
 
     course.lessons.splice(lessonIndex, 1);
     await this.coursesRepository.save(course);
+    this.logger.verbose(
+      `Lesson "${lesson.title}" is deleted from course "${course.title}"`,
+    );
   }
 }

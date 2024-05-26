@@ -4,9 +4,10 @@ import {
   PrimaryGeneratedColumn,
   OneToMany,
   ManyToOne,
+  PrimaryColumn,
 } from 'typeorm';
-import { CourseStatus, LessonStatus } from './course.enum';
-import { User } from 'src/auth/user.entity';
+import { User } from '../auth/user.entity';
+import { EnrollmentStatus, LessonStatus } from './course.enum';
 
 @Entity()
 export class Course {
@@ -18,13 +19,6 @@ export class Course {
 
   @Column()
   description: string;
-
-  @Column({
-    type: 'enum',
-    enum: CourseStatus,
-    default: CourseStatus.OPEN,
-  })
-  status: CourseStatus;
 
   @OneToMany(() => Lesson, (lesson) => lesson.course, {
     cascade: true,
@@ -60,7 +54,9 @@ export class Lesson {
   })
   status: LessonStatus;
 
-  @ManyToOne(() => Course, (course) => course.lessons)
+  @ManyToOne(() => Course, (course) => course.lessons, {
+    onDelete: 'CASCADE',
+  })
   course: Course;
 }
 
@@ -77,6 +73,43 @@ export class Enrollment {
   })
   course: Course;
 
-  @Column({ type: 'float', default: 0 })
+  @OneToMany(
+    () => LessonProgress,
+    (lessonProgress) => lessonProgress.enrollment,
+    {
+      cascade: true,
+    },
+  )
+  lessonProgress: LessonProgress[];
+
+  @Column({ type: 'int', default: 0 })
   progress: number;
+
+  @Column({
+    type: 'enum',
+    enum: EnrollmentStatus,
+    default: EnrollmentStatus.NOT_STARTED,
+  })
+  status: EnrollmentStatus;
+}
+
+@Entity()
+export class LessonProgress {
+  @PrimaryColumn('uuid')
+  id: string;
+
+  @Column()
+  title: string;
+
+  @Column({
+    type: 'enum',
+    enum: LessonStatus,
+    default: LessonStatus.NOT_STARTED,
+  })
+  status: LessonStatus;
+
+  @ManyToOne(() => Enrollment, (enrollment) => enrollment.lessonProgress, {
+    onDelete: 'CASCADE',
+  })
+  enrollment: Enrollment;
 }
