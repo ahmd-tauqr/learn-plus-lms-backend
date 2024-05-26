@@ -1,73 +1,261 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# Learn Plus LMS Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Overview
+Learn Plus LMS Backend is a learning management system for managing courses and lessons, built using NestJS, TypeORM, and PostgreSQL. This backend application provides APIs for user authentication, course management, lesson management, and enrollment management.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Table of Contents
+1. [TL;DR](#tldr)
+2. [Setup](#setup)
+3. [Running the Application](#running-the-application)
+4. [Testing](#testing)
+5. [API Endpoints](#api-endpoints)
+   - [Authentication](#authentication)
+   - [Courses](#courses)
+   - [Enrollments](#enrollments)
 
-## Description
+## TL;DR
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+1. **Clone the repository:**
+   ```sh
+   git clone <repository-url>
+   cd learn-plus-lms-backend
+   ```
 
-## Installation
+2. **Install dependencies:**
+   ```sh
+   npm install
+   ```
 
-```bash
-$ yarn install
+3. **Setup environment variables:**
+   Create a `.env.stage.dev` file based on the `.env.example` file.
+
+4. **Run the application:**
+   ```sh
+   npm run start:dev
+   ```
+
+5. **Run tests:**
+   ```sh
+   npm run test
+   ```
+
+## Setup
+
+### Prerequisites
+- Node.js (v14 or higher)
+- npm (v6 or higher)
+- PostgreSQL
+
+### Installation
+
+1. **Clone the repository:**
+   ```sh
+   git clone <repository-url>
+   cd learn-plus-lms-backend
+   ```
+
+2. **Install dependencies:**
+   ```sh
+   npm install
+   ```
+
+3. **Setup environment variables:**
+   Create a `.env.stage.dev` file based on the `.env.example` file and configure it with your PostgreSQL database credentials.
+
+   Example:
+   ```env
+   STAGE=dev
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_USERNAME=your_username
+   DB_PASSWORD=your_password
+   DB_DATABASE=your_database
+   ```
+
+### Database Setup
+1. **Create a PostgreSQL database:**
+   ```sh
+   createdb learn_plus_lms
+   ```
+
+2. **Run database migrations (if any):**
+   ```sh
+   npm run typeorm migration:run
+   ```
+
+## Running the Application
+
+### Development
+To run the application in development mode with hot-reloading:
+```sh
+npm run start:dev
 ```
 
-## Running the app
-
-```bash
-# development
-$ yarn run start
-
-# watch mode
-$ yarn run start:dev
-
-# production mode
-$ yarn run start:prod
+### Production
+To run the application in production mode:
+```sh
+npm run build
+npm run start:prod
 ```
 
-## Test
-
-```bash
-# unit tests
-$ yarn run test
-
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
+## Testing
+To run the test suite:
+```sh
+npm run test
 ```
 
-## Support
+To run tests in watch mode:
+```sh
+npm run test:watch
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+To generate test coverage report:
+```sh
+npm run test:cov
+```
 
-## Stay in touch
+## API Endpoints
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### Authentication
 
-## License
+#### Sign Up
+- **Endpoint:** `POST /auth/signup`
+- **Description:** Create a new user.
+- **Body:**
+  ```json
+  {
+    "username": "testuser",
+    "password": "password"
+  }
+  ```
+- **Response:**
+  - `201 Created` on success
+  - `409 Conflict` if username already exists
 
-Nest is [MIT licensed](LICENSE).
+#### Sign In
+- **Endpoint:** `POST /auth/signin`
+- **Description:** Sign in a user.
+- **Body:**
+  ```json
+  {
+    "username": "testuser",
+    "password": "password"
+  }
+  ```
+- **Response:**
+  - `200 OK` with access token cookie on success
+  - `401 Unauthorized` on invalid credentials
+
+### Courses
+
+#### Get All Courses
+- **Endpoint:** `GET /courses`
+- **Description:** Retrieve all courses.
+- **Response:**
+  - `200 OK` with list of courses
+
+#### Get Course by ID
+- **Endpoint:** `GET /courses/:id`
+- **Description:** Retrieve a course by its ID.
+- **Response:**
+  - `200 OK` with course details
+  - `404 Not Found` if course does not exist
+
+#### Create Course
+- **Endpoint:** `POST /courses`
+- **Description:** Create a new course.
+- **Body:**
+  ```json
+  {
+    "title": "New Course",
+    "description": "Course description",
+    "tags": ["tag1", "tag2"],
+    "lessons": [
+      {
+        "title": "Lesson 1",
+        "description": "Lesson 1 description"
+      }
+    ]
+  }
+  ```
+- **Response:**
+  - `201 Created` on success
+
+#### Add Lesson to Course
+- **Endpoint:** `POST /courses/:id/lessons`
+- **Description:** Add a lesson to an existing course.
+- **Body:**
+  ```json
+  {
+    "title": "New Lesson",
+    "description": "Lesson description"
+  }
+  ```
+- **Response:**
+  - `201 Created` on success
+
+#### Delete Course
+- **Endpoint:** `DELETE /courses/:id`
+- **Description:** Delete a course by its ID.
+- **Response:**
+  - `200 OK` on success
+  - `404 Not Found` if course does not exist
+
+#### Delete Lesson
+- **Endpoint:** `DELETE /courses/:id/lessons/:lessonId`
+- **Description:** Delete a lesson by its ID from a course.
+- **Response:**
+  - `200 OK` on success
+  - `404 Not Found` if lesson does not exist
+
+### Enrollments
+
+#### Enroll to Course
+- **Endpoint:** `POST /auth/enroll/:courseId`
+- **Description:** Enroll the authenticated user to a course.
+- **Response:**
+  - `201 Created` on success
+  - `404 Not Found` if course does not exist
+
+#### Unenroll from Course
+- **Endpoint:** `DELETE /auth/unenroll/:enrollmentId`
+- **Description:** Unenroll the authenticated user from a course.
+- **Response:**
+  - `200 OK` on success
+  - `404 Not Found` if enrollment does not exist
+
+#### Get Enrollments
+- **Endpoint:** `GET /auth/enrollments`
+- **Description:** Retrieve all enrollments for the authenticated user.
+- **Response:**
+  - `200 OK` with list of enrollments
+
+#### Get Enrollment Details
+- **Endpoint:** `GET /auth/enrollments/:enrollmentId`
+- **Description:** Retrieve details of a specific enrollment.
+- **Response:**
+  - `200 OK` with enrollment details
+  - `404 Not Found` if enrollment does not exist
+
+#### Update Enrollment Progress
+- **Endpoint:** `PATCH /auth/enrollments/:enrollmentId/progress`
+- **Description:** Update the progress of an enrollment.
+- **Body:**
+  ```json
+  {
+    "progress": 50
+  }
+  ```
+- **Response:**
+  - `200 OK` on success
+  - `404 Not Found` if enrollment does not exist
+
+#### Complete Lesson
+- **Endpoint:** `PATCH /auth/enrollments/:enrollmentId/lessons/:lessonId/complete`
+- **Description:** Mark a lesson as completed for an enrollment.
+- **Response:**
+  - `200 OK` on success
+  - `404 Not Found` if lesson progress does not exist
+
+## Conclusion
+This documentation provides a comprehensive guide to setting up, running, and interacting with the Learn Plus LMS Backend. The API endpoints are designed to cover all necessary operations for managing courses, lessons, and enrollments. For any additional information or support, please refer to the project repository or contact the author.
