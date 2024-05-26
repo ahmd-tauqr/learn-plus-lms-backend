@@ -32,11 +32,14 @@ export class Course {
   })
   lessons: Lesson[];
 
+  @OneToMany(() => Enrollment, (enrollment) => enrollment.course, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  enrollments: Enrollment[];
+
   @Column('simple-array')
   tags: string[];
-
-  @OneToMany(() => Enrollment, (enrollment) => enrollment.course)
-  enrollments: Enrollment[];
 
   @Column({ type: 'int', default: 0 })
   enrollmentsCount: number;

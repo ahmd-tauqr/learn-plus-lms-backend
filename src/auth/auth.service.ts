@@ -83,7 +83,10 @@ export class AuthService {
     }
 
     const existingEnrollment = await this.enrollmentRepository.findOne({
-      where: { user, course },
+      where: {
+        user: { id: user.id },
+        course: { id: course.id },
+      },
     });
 
     if (existingEnrollment) {
@@ -145,9 +148,17 @@ export class AuthService {
     return user.enrollments;
   }
 
-  async getEnrollmentDetails(id: string): Promise<Enrollment> {
+  async getEnrollmentDetails(
+    username: string,
+    id: string,
+  ): Promise<Enrollment> {
+    const user = await this.userRepository.findOne({ where: { username } });
+    if (!user) {
+      throw new NotFoundException(`User with username "${username}" not found`);
+    }
+
     const enrollment = await this.enrollmentRepository.findOne({
-      where: { id: id },
+      where: { id: id, user },
       relations: ['course', 'course.lessons'],
     });
 
@@ -158,9 +169,18 @@ export class AuthService {
     return enrollment;
   }
 
-  async updateEnrollmentProgress(id: string, progress: number): Promise<void> {
+  async updateEnrollmentProgress(
+    username: string,
+    id: string,
+    progress: number,
+  ): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { username } });
+    if (!user) {
+      throw new NotFoundException(`User with username "${username}" not found`);
+    }
+
     const enrollment = await this.enrollmentRepository.findOne({
-      where: { id },
+      where: { id, user },
     });
 
     if (!enrollment) {
@@ -171,9 +191,18 @@ export class AuthService {
     await this.enrollmentRepository.save(enrollment);
   }
 
-  async completeLesson(id: string, lessonId: string): Promise<void> {
+  async completeLesson(
+    username: string,
+    id: string,
+    lessonId: string,
+  ): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { username } });
+    if (!user) {
+      throw new NotFoundException(`User with username "${username}" not found`);
+    }
+
     const enrollment = await this.enrollmentRepository.findOne({
-      where: { id: id },
+      where: { id, user },
       relations: ['course', 'user'],
     });
 

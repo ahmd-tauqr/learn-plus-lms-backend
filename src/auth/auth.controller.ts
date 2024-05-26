@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   UseGuards,
+  Logger,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
@@ -17,10 +18,12 @@ import { GetUser } from './get-user.decorater';
 
 @Controller('auth')
 export class AuthController {
+  private logger = new Logger('CoursesController');
   constructor(private authService: AuthService) {}
 
   @Post('/signup')
   async signUp(@Body() authCredentialsDto: AuthCredentialsDto): Promise<void> {
+    this.logger.verbose(`User "${authCredentialsDto.username}" signed up`);
     return this.authService.createUser(authCredentialsDto);
   }
 
@@ -28,6 +31,7 @@ export class AuthController {
   async signIn(
     @Body() authCredentialsDto: AuthCredentialsDto,
   ): Promise<{ accessToken: string }> {
+    this.logger.verbose(`User "${authCredentialsDto.username}" signed in`);
     const accessToken = await this.authService.validateUser(authCredentialsDto);
     return { accessToken };
   }
@@ -38,6 +42,9 @@ export class AuthController {
     @Param('courseId') courseId: string,
     @GetUser() user: User,
   ): Promise<void> {
+    this.logger.verbose(
+      `User "${user.username}" enrolled to course Id "${courseId}"`,
+    );
     await this.authService.enrollToCourse(user.username, courseId);
   }
 
@@ -47,12 +54,16 @@ export class AuthController {
     @Param('courseId') courseId: string,
     @GetUser() user: User,
   ): Promise<void> {
+    this.logger.verbose(
+      `User "${user.username}" unenrolled from course Id "${courseId}"`,
+    );
     await this.authService.unenrollFromCourse(user.username, courseId);
   }
 
   @Get('/enrollments')
   @UseGuards(JwtAuthGuard)
   async getEnrollments(@GetUser() user: User): Promise<Enrollment[]> {
+    this.logger.verbose(`User "${user.username}" retrieving enrollments`);
     return this.authService.getEnrollments(user.username);
   }
 
@@ -60,8 +71,12 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async getEnrollmentDetails(
     @Param('enrollmentId') enrollmentId: string,
+    @GetUser() user: User,
   ): Promise<Enrollment> {
-    return this.authService.getEnrollmentDetails(enrollmentId);
+    this.logger.verbose(
+      `User "${user.username}" retrieving enrollment details for Id "${enrollmentId}"`,
+    );
+    return this.authService.getEnrollmentDetails(user.username, enrollmentId);
   }
 
   @Patch('/enrollments/:enrollmentId/progress')
@@ -69,8 +84,16 @@ export class AuthController {
   async updateEnrollmentProgress(
     @Param('enrollmentId') enrollmentId: string,
     @Body('progress') progress: number,
+    @GetUser() user: User,
   ): Promise<void> {
-    await this.authService.updateEnrollmentProgress(enrollmentId, progress);
+    this.logger.verbose(
+      `User "${user.username}" updating progress for enrollment Id "${enrollmentId}" to "${progress}"`,
+    );
+    await this.authService.updateEnrollmentProgress(
+      user.username,
+      enrollmentId,
+      progress,
+    );
   }
 
   @Patch('/enrollments/:enrollmentId/lessons/:lessonId/complete')
@@ -78,7 +101,15 @@ export class AuthController {
   async completeLesson(
     @Param('enrollmentId') enrollmentId: string,
     @Param('lessonId') lessonId: string,
+    @GetUser() user: User,
   ): Promise<void> {
-    await this.authService.completeLesson(enrollmentId, lessonId);
+    this.logger.verbose(
+      `User "${user.username}" completing lesson Id "${lessonId}" for enrollment Id "${enrollmentId}"`,
+    );
+    await this.authService.completeLesson(
+      user.username,
+      enrollmentId,
+      lessonId,
+    );
   }
 }

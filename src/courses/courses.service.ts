@@ -82,17 +82,14 @@ export class CoursesService {
   async deleteCourse(id: string): Promise<void> {
     const course = await this.coursesRepository.findOne({
       where: { id },
-      relations: ['lessons'],
+      relations: ['lessons', 'enrollments'],
     });
 
     if (!course) {
       throw new NotFoundException(`Course with ID "${id}" not found`);
     }
 
-    // Delete all associated lessons
-    await this.lessonsRepository.remove(course.lessons);
-
-    // Delete the course
+    // Delete the course along with its lessons and enrollments
     await this.coursesRepository.remove(course);
   }
 
