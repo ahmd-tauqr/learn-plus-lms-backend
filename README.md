@@ -23,7 +23,7 @@ Learn Plus LMS Backend is a learning management system for managing courses and 
 
 2. **Install dependencies:**
    ```sh
-   npm install
+   yarn install
    ```
 
 3. **Setup environment variables:**
@@ -31,19 +31,19 @@ Learn Plus LMS Backend is a learning management system for managing courses and 
 
 4. **Run the application:**
    ```sh
-   npm run start:dev
+   yarn start:dev
    ```
 
 5. **Run tests:**
    ```sh
-   npm run test
+   yarn test
    ```
 
 ## Setup
 
 ### Prerequisites
 - Node.js (v14 or higher)
-- npm (v6 or higher)
+- Yarn (v1.22 or higher)
 - PostgreSQL
 
 ### Installation
@@ -56,7 +56,7 @@ Learn Plus LMS Backend is a learning management system for managing courses and 
 
 2. **Install dependencies:**
    ```sh
-   npm install
+   yarn install
    ```
 
 3. **Setup environment variables:**
@@ -70,6 +70,7 @@ Learn Plus LMS Backend is a learning management system for managing courses and 
    DB_USERNAME=your_username
    DB_PASSWORD=your_password
    DB_DATABASE=your_database
+   JWT_SECRET=keepitverysecret!!
    ```
 
 ### Database Setup
@@ -80,7 +81,7 @@ Learn Plus LMS Backend is a learning management system for managing courses and 
 
 2. **Run database migrations (if any):**
    ```sh
-   npm run typeorm migration:run
+   yarn typeorm migration:run
    ```
 
 ## Running the Application
@@ -88,30 +89,30 @@ Learn Plus LMS Backend is a learning management system for managing courses and 
 ### Development
 To run the application in development mode with hot-reloading:
 ```sh
-npm run start:dev
+yarn start:dev
 ```
 
 ### Production
 To run the application in production mode:
 ```sh
-npm run build
-npm run start:prod
+yarn build
+yarn start:prod
 ```
 
 ## Testing
 To run the test suite:
 ```sh
-npm run test
+yarn test:dev
 ```
 
 To run tests in watch mode:
 ```sh
-npm run test:watch
+yarn test:watch
 ```
 
 To generate test coverage report:
 ```sh
-npm run test:cov
+yarn test:cov
 ```
 
 ## API Endpoints
