@@ -7,11 +7,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt.strategy';
 import { CoursesModule } from 'src/courses/courses.module';
-import { Course, Enrollment } from 'src/courses/course.entity';
+import { Course, Enrollment, Lesson } from 'src/courses/course.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Course, Enrollment]),
+    TypeOrmModule.forFeature([User, Course, Lesson, Enrollment]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: 'topSecretArea51',

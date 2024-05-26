@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Body,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, Delete } from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { CreateLessonDto } from './dto/create-lesson.dto';
@@ -39,14 +31,6 @@ export class CoursesController {
     @Body() createLessonDto: CreateLessonDto,
   ): Promise<Lesson> {
     return await this.coursesService.addLesson(id, createLessonDto);
-  }
-
-  @Patch(':id/lessons/:lessonId/complete')
-  async completeLesson(
-    @Param('id') id: string,
-    @Param('lessonId') lessonId: string,
-  ): Promise<Lesson> {
-    return await this.coursesService.completeLesson(id, lessonId);
   }
 
   @Delete(':id')

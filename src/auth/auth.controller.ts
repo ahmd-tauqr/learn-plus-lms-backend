@@ -7,6 +7,7 @@ import {
   ValidationPipe,
   Param,
   UseGuards,
+  Patch,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
@@ -51,6 +52,24 @@ export class AuthController {
     @GetUser() user: User,
   ): Promise<void> {
     await this.authService.unenrollFromCourse(user.username, courseId);
+  }
+
+  @Patch('/enrollments/:enrollmentId/progress')
+  @UseGuards(JwtAuthGuard)
+  async updateEnrollmentProgress(
+    @Param('enrollmentId') enrollmentId: string,
+    @Body('progress') progress: number,
+  ): Promise<void> {
+    await this.authService.updateEnrollmentProgress(enrollmentId, progress);
+  }
+
+  @Patch('/enrollments/:enrollmentId/lessons/:lessonId/complete')
+  @UseGuards(JwtAuthGuard)
+  async completeLesson(
+    @Param('enrollmentId') enrollmentId: string,
+    @Param('lessonId') lessonId: string,
+  ): Promise<void> {
+    await this.authService.completeLesson(enrollmentId, lessonId);
   }
 
   @Get('/courses')

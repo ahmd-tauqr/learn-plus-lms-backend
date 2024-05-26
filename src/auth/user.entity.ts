@@ -1,11 +1,4 @@
-import {
-  Column,
-  Entity,
-  PrimaryGeneratedColumn,
-  BeforeInsert,
-  OneToMany,
-} from 'typeorm';
-import * as bcrypt from 'bcrypt';
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { Enrollment } from 'src/courses/course.entity';
 
 @Entity()
@@ -21,9 +14,4 @@ export class User {
 
   @OneToMany(() => Enrollment, (enrollment) => enrollment.user)
   enrollments: Enrollment[];
-
-  @BeforeInsert()
-  async hashPassword() {
-    this.password = await bcrypt.hash(this.password, 10);
-  }
 }

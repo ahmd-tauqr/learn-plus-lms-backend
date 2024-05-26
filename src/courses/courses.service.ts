@@ -40,7 +40,6 @@ export class CoursesService {
       description,
       status: CourseStatus.OPEN,
       lessons: [],
-      progress: 0,
       tags,
     });
 
@@ -80,28 +79,6 @@ export class CoursesService {
     return lesson;
   }
 
-  async completeLesson(courseId: string, lessonId: string): Promise<Lesson> {
-    const lesson = await this.lessonsRepository.findOne({
-      where: { id: lessonId, course: { id: courseId } },
-      relations: ['course'],
-    });
-
-    if (!lesson) {
-      throw new NotFoundException(
-        `Lesson with ID "${lessonId}" not found in course with ID "${courseId}"`,
-      );
-    }
-
-    lesson.status = LessonStatus.COMPLETED;
-    await this.lessonsRepository.save(lesson);
-
-    const course = await this.getCourseById(courseId);
-    this.updateCourseProgress(course);
-    await this.coursesRepository.save(course);
-
-    return lesson;
-  }
-
   async deleteCourse(id: string): Promise<void> {
     const course = await this.coursesRepository.findOne({
       where: { id },
@@ -119,8 +96,8 @@ export class CoursesService {
     await this.coursesRepository.remove(course);
   }
 
-  async deleteLesson(courseId: string, lessonId: string): Promise<void> {
-    const course = await this.getCourseById(courseId);
+  async deleteLesson(id: string, lessonId: string): Promise<void> {
+    const course = await this.getCourseById(id);
 
     const lessonIndex = course.lessons.findIndex(
       (lesson) => lesson.id === lessonId,
@@ -133,29 +110,6 @@ export class CoursesService {
     await this.lessonsRepository.remove(lesson);
 
     course.lessons.splice(lessonIndex, 1);
-    this.updateCourseProgress(course);
     await this.coursesRepository.save(course);
-  }
-
-  private updateCourseProgress(course: Course) {
-    if (!course.lessons) {
-      course.progress = 0;
-      course.status = CourseStatus.NOT_STARTED;
-      return;
-    }
-
-    const completedLessons = course.lessons.filter(
-      (lesson) => lesson.status === LessonStatus.COMPLETED,
-    ).length;
-
-    course.progress = (completedLessons / course.lessons.length) * 100;
-
-    if (course.progress === 100) {
-      course.status = CourseStatus.COMPLETED;
-    } else if (completedLessons > 0) {
-      course.status = CourseStatus.IN_PROGRESS;
-    } else {
-      course.status = CourseStatus.NOT_STARTED;
-    }
   }
 }

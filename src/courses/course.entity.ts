@@ -32,14 +32,14 @@ export class Course {
   })
   lessons: Lesson[];
 
-  @Column({ type: 'float', default: 0 })
-  progress: number;
-
   @Column('simple-array')
   tags: string[];
 
   @OneToMany(() => Enrollment, (enrollment) => enrollment.course)
   enrollments: Enrollment[];
+
+  @Column({ type: 'int', default: 0 })
+  enrollmentsCount: number;
 }
 
 @Entity()
