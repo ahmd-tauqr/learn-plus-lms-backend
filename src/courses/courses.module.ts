@@ -4,6 +4,7 @@ import { CoursesService } from './courses.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Course, Enrollment, Lesson, LessonProgress } from './course.entity';
 import { ConfigModule } from '@nestjs/config';
+import { SeedService } from 'src/database/seed';
 
 @Module({
   imports: [
@@ -11,6 +12,6 @@ import { ConfigModule } from '@nestjs/config';
     TypeOrmModule.forFeature([Course, Enrollment, Lesson, LessonProgress]),
   ],
   controllers: [CoursesController],
-  providers: [CoursesService],
+  providers: [CoursesService, SeedService],
 })
 export class CoursesModule {}

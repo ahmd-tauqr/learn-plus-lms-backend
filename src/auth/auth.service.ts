@@ -11,6 +11,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 import * as bcrypt from 'bcrypt';
+import { Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import {
   Course,
@@ -63,7 +64,10 @@ export class AuthService {
     }
   }
 
-  async validateUser(authCredentialsDto: AuthCredentialsDto): Promise<string> {
+  async validateUser(
+    authCredentialsDto: AuthCredentialsDto,
+    res: Response,
+  ): Promise<void> {
     const { username, password } = authCredentialsDto;
     const user = await this.userRepository.findOne({ where: { username } });
 
@@ -71,7 +75,10 @@ export class AuthService {
       const payload = { username };
       const accessToken = await this.jwtService.sign(payload);
       this.logger.verbose(`User "${user.username}" signed in`);
-      return accessToken;
+      res.cookie('accessToken', accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+      });
     } else {
       throw new UnauthorizedException('Invalid credentials');
     }

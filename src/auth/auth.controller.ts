@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   UseGuards,
+  Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
@@ -15,6 +16,7 @@ import { User } from './user.entity';
 import { Enrollment } from 'src/courses/course.entity';
 import { GetUser } from './get-user.decorater';
 import { UpdateEnrollmentProgressDto } from 'src/courses/dto/update-enrollment-progress.dto';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -28,9 +30,10 @@ export class AuthController {
   @Post('/signin')
   async signIn(
     @Body() authCredentialsDto: AuthCredentialsDto,
-  ): Promise<{ accessToken: string }> {
-    const accessToken = await this.authService.validateUser(authCredentialsDto);
-    return { accessToken };
+    @Res() res: Response,
+  ): Promise<void> {
+    await this.authService.validateUser(authCredentialsDto, res);
+    res.status(200).json({ message: 'Signin successful' });
   }
 
   @Post('/enroll/:courseId')

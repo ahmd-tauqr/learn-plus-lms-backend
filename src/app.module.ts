@@ -4,7 +4,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { configValidationSchema } from './config.schema';
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -17,7 +16,7 @@ import { configValidationSchema } from './config.schema';
       useFactory: async (configService: ConfigService) => ({
         type: 'postgres',
         host: configService.get('DB_HOST'),
-        port: configService.get('DB_PORT'),
+        port: parseInt(configService.get('DB_PORT'), 10) || 5432,
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_DATABASE'),
