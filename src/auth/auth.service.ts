@@ -55,7 +55,6 @@ export class AuthService {
       await this.userRepository.save(user);
       this.logger.verbose(`User "${user.username}" signed up`);
     } catch (error) {
-      console.log(error.code);
       if (error.code === '23505') {
         throw new ConflictException('Username already exists');
       } else {
