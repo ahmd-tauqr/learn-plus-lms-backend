@@ -36,7 +36,7 @@ Learn Plus LMS Backend is a learning management system for managing courses and 
 
 5. **Run tests:**
    ```sh
-   yarn test
+   yarn test:dev
    ```
 
 ## Setup

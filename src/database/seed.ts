@@ -24,7 +24,7 @@ export class SeedService implements OnModuleInit {
         const course = this.courseRepository.create({
           title: `Course Title ${i}`,
           description: faker.lorem.paragraph(),
-          tags: [faker.random.word(), faker.random.word()],
+          tags: [faker.random.word(), faker.word.sample()],
         });
 
         await this.courseRepository.save(course);
