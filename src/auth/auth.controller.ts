@@ -36,6 +36,15 @@ export class AuthController {
     res.status(200).json({ message: 'Signin successful' });
   }
 
+  @Post('/refresh-token')
+  async refreshToken(
+    @Body('refreshToken') refreshToken: string,
+    @Res() res: Response,
+  ): Promise<void> {
+    await this.authService.refreshToken(refreshToken, res);
+    res.status(200).json({ message: 'Token refreshed successfully' });
+  }
+
   @Post('/enroll/:courseId')
   @UseGuards(JwtAuthGuard)
   async enrollToCourse(

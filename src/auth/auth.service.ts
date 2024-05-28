@@ -77,9 +77,30 @@ export class AuthService {
       res.cookie('accessToken', accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
       });
     } else {
       throw new UnauthorizedException('Invalid credentials');
+    }
+  }
+
+  async refreshToken(refreshToken: string, res: Response): Promise<void> {
+    try {
+      const payload = this.jwtService.verify(refreshToken);
+      const { username } = payload;
+
+      const newAccessToken = this.jwtService.sign(
+        { username },
+        { expiresIn: '1h' },
+      );
+      res.cookie('accessToken', newAccessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+      });
+
+      this.logger.verbose(`Access token refreshed for user "${username}"`);
+    } catch (error) {
+      throw new UnauthorizedException('Invalid refresh token');
     }
   }
 
